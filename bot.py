@@ -27,7 +27,7 @@ def MAU_DAU(url):
     # filter MAU data
     mau = mau.replace("<p>","")
     mau = mau.replace("</p>","")
-    mau = mau.replace("Million","mln")
+    mau = mau.replace("Million","M")
     
     # select DAU <p>
     dau = str(soup.select("div p")[2])
@@ -35,7 +35,7 @@ def MAU_DAU(url):
     # filter MAU data
     dau = dau.replace("<p>","")
     dau = dau.replace("</p>","")
-    dau = dau.replace("Million","mln")
+    dau = dau.replace("Million","M")
 
     # return data on dict 
     return {"mau":mau,"dau":dau}
@@ -70,44 +70,69 @@ def monthly_ads(url):
     return ('${:,}'.format(monthly_transaction))
 
 
-# ch_id_list = list()
 
-# bot = commands.Bot(command_prefix='&')
+bot = commands.Bot(command_prefix="?")
 
-# @bot.command(ch_id_list = ch_id_list)
-# @has_permissions(manage_channels=True)
-# async def config(ctx, arg):
+@bot.command()
+@has_permissions(manage_channels=True)
+async def h(ctx, arg):
+    await ctx.send("?config channels: to create the trackers\n?start trackers: to track data every 12h")
 
-#     await ctx.guild.create_category("📈 Brave DATA Tracker 📈")
-#     cat = discord.utils.get(ctx.guild.categories, name="📈 Brave DATA Tracker 📈")
-#     guild = ctx.message.guild
-#     channel_name_updated = "USD | Gwei"
-#     await guild.create_voice_channel(name=channel_name_updated, category=cat)
-#     ch_id_list.append(discord.utils.get(ctx.guild.channels, name=channel_name_updated))
-#     # print(ch_id_list)
-#     helper = "Go to voice channel settings and set connect to False.\n\n" "Type: $start track"
-#     await ctx.send(helper)
+@bot.command()
+@has_permissions(manage_channels=True)
+async def config(ctx, arg):
+    cat = discord.utils.get(ctx.guild.categories, name="🐯🎯 Brave DATA 🎯🐯")
+    if(cat):
+        await ctx.send("Category already exists! Type ?start trackers")
+    else:
+        await ctx.guild.create_category("🐯🎯 Brave DATA 🎯🐯")
+        cat = discord.utils.get(ctx.guild.categories, name="🐯🎯 Brave DATA 🎯🐯")
+        await ctx.send("Category create!")
+        guild = ctx.message.guild
+        channel_name_updated = "MAU: "
+        await guild.create_voice_channel(name=channel_name_updated, category=cat)
+        channel_name_updated = "DAU: "
+        await guild.create_voice_channel(name=channel_name_updated, category=cat)
+        channel_name_updated = "Monthly ads: "
+        await guild.create_voice_channel(name=channel_name_updated, category=cat)
+        await ctx.send("Channels ready to track. Type ?start trackers")
 
 
-# @bot.command(price_url=price_url, gas_url=gas_url, ch_id_list = ch_id_list)
-# @has_permissions(manage_channels=True)
+@bot.command()
+@has_permissions(manage_channels=True)
 
-# async def start(ctx, arg):
-#     starttime = time.time()
-#     while True:
-#         bat_price = bat_current_price(price_url)
-#         gas_value = gas_current_value(gas_url)
-#         channel_name_updated = str(bat_price) + " USD " + " | " + str(gas_value) + " Gwei"
-#         # await ctx.send(channel_name_updated)
-#         print(channel_name_updated)
-#         ch = discord.utils.get(ctx.guild.channels, id=ch_id_list[0].id)
-#         await ch.edit(name = channel_name_updated)
-#         time.sleep(300.0 - ((time.time() - starttime) % 300.0))
+async def start(ctx, arg):
+    cat = discord.utils.get(ctx.guild.categories, name="🐯🎯 Brave DATA 🎯🐯")
+    list_voice_ch = cat.channels
+    starttime = time.time()
+    while True:
+        mau_dau_dict = MAU_DAU(_url)
+        month_ads = monthly_ads(_url2)
+        print("MAU: " + mau_dau_dict['mau'] + "  " + "DAU: " + mau_dau_dict['dau'] + "  " + "Monthly ads: " + month_ads)
+        ### Update MAU
+        channel_name_updated = "MAU: " + mau_dau_dict['mau']
+        # await ctx.send(channel_name_updated)
+        # print(channel_name_updated)
+        ch = discord.utils.get(ctx.guild.channels, id=list_voice_ch[0].id)
+        await ch.edit(name = channel_name_updated)
+
+        ### Update DAU
+        channel_name_updated = "DAU: " + mau_dau_dict['dau']
+        # await ctx.send(channel_name_updated)
+        # print(channel_name_updated)
+        ch = discord.utils.get(ctx.guild.channels, id=list_voice_ch[1].id)
+        await ch.edit(name = channel_name_updated)
+
+        ### Update Monthly ads
+        channel_name_updated = "Monthly ads: " + month_ads
+        # await ctx.send(channel_name_updated)
+        # print(channel_name_updated)
+        ch = discord.utils.get(ctx.guild.channels, id=list_voice_ch[2].id)
+        await ch.edit(name = channel_name_updated)
+        time.sleep(43200.0 - ((time.time() - starttime) % 43200.0))
 
 
 if __name__ == '__main__':
     print("Running")
-    #bot.run(os.environ.get('TOKEN'))
-    # bot.run("")
-    print(MAU_DAU(_url))
-    print(monthly_ads(_url2))
+    bot.run(os.environ.get('TOKEN_BRAVE_DATA_BOT'))
+    
