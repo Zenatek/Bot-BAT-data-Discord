@@ -1,1 +1,1 @@
-# -Bot-BAT-data-Discord
+# Bot-BAT-data-Discord
